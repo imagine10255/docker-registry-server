@@ -1,0 +1,34 @@
+version: '3.4'
+services:
+    server:
+      restart: always
+      image: registry:2.7.0
+      container_name: docker-registry-server
+      environment:
+          REGISTRY_AUTH: htpasswd
+          REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+          REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+          REGISTRY_HTTP_TLS_CERTIFICATE: /certs/_certificate.crt
+          REGISTRY_HTTP_TLS_KEY: /certs/private.key
+      volumes:
+          - "storage:/var/lib/registry"
+          - "./auth:/auth"
+          - "./ssl:/certs"
+      ports:
+          - "8443:5000"
+
+
+    verify:
+      restart: "no"
+      image: nginx
+      container_name: docker-registry-verify
+      volumes:
+          - "./verify-public:/usr/share/nginx/html"
+      ports:
+          - "80:80"
+      command: [nginx-debug, '-g', 'daemon off;']
+
+volumes:
+    storage:
+      driver: local
+      name: docker-registry-storage
